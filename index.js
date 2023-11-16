@@ -1,9 +1,11 @@
 import express from "express";
-import patientsRoutes from "./routes/patient.js";
 import cookieParser from "cookie-parser";
 import multer from "multer";
 import cors from "cors";
 import ErrorHandler from "./middlewares/errorHandler.js";
+//Routes
+import patientsRoutes from "./routes/patient.js";
+import doctorsGroupsRoutes from "./routes/doctorsGroups.js";
 
 const app = express();
 
@@ -29,6 +31,7 @@ app.post("/api/upload", upload.single("file"), function (req, res) {
 
 //Routes
 app.use("/api/patients", patientsRoutes);
+app.use("/api/doctorsGroups", doctorsGroupsRoutes);
 
 // ERROR HANDLER MIDDLEWARE (Last middleware to use)
 app.use(ErrorHandler);

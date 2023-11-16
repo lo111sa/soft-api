@@ -55,9 +55,11 @@ export const addPatient = async (req, res) => {
       ]
     );
     return res.json({
-      id: parseInt(result.insertId),
-      ...req.body,
-      createdAt: currentDate,
+      result: {
+        id: parseInt(result.insertId),
+        ...req.body,
+        createdAt: currentDate,
+      },
       message: "პაციენტი დამატებულია",
     });
   } catch (error) {
