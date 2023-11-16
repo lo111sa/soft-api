@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get("/", getPatients);
 router.get("/:id", getPatient);
-router.post("/", addPatient);
+router.post("/add", addPatient);
 router.delete("/:id", deletePatient);
 router.put("/:id", updatePatient);
 

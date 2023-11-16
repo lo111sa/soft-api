@@ -2,12 +2,29 @@ import { db } from "../db.js";
 import jwt from "jsonwebtoken";
 
 //Get patients
-export const getPatients = async (req, res) => {
+export const getPatients = async (req, res, next) => {
   let conn;
   try {
     conn = await db.getConnection();
-    const rows = await conn.query(`SELECT * FROM patient`);
+    const rows = await conn.query(`SELECT * FROM patients`);
     res.json(rows);
+  } catch (error) {
+    next(error);
+  } finally {
+    if (conn) return conn.end();
+  }
+};
+
+//Get single patient
+export const getPatient = async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    const result = await conn.query(
+      "SELECT * FROM patients WHERE id=?",
+      req.params.id
+    );
+    res.json(result);
   } catch (error) {
     res.json(error);
   } finally {
@@ -15,14 +32,81 @@ export const getPatients = async (req, res) => {
   }
 };
 
-//Get single patient
-export const getPatient = (req, res) => {};
-
 //Add new patient
-export const addPatient = (req, res) => {};
-
-//Delete patient
-export const deletePatient = (req, res) => {};
+export const addPatient = async (req, res) => {
+  let conn;
+  const currentDate = new Date();
+  try {
+    conn = await db.getConnection();
+    const result = await conn.query(
+      "INSERT INTO patients (`name`,`birthDate`,`pn`,`gender`,`address`,`city`,`tel`,`tel1`,`email`,`createdBy`,`createdAt`) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+      [
+        req.body.name,
+        req.body.birthDate,
+        req.body.pn,
+        req.body.gender,
+        req.body.address,
+        req.body.city,
+        req.body.tel,
+        req.body.tel1,
+        req.body.email,
+        req.body.createdBy,
+        currentDate,
+      ]
+    );
+    return res.json({
+      id: parseInt(result.insertId),
+      ...req.body,
+      createdAt: currentDate,
+      message: "პაციენტი დამატებულია",
+    });
+  } catch (error) {
+    res.json(error);
+  } finally {
+    if (conn) return conn.end();
+  }
+};
 
 //Update patient
-export const updatePatient = (req, res) => {};
+export const updatePatient = async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    await conn.query(
+      "UPDATE patients SET `name`=?,`birthDate`=?,`pn`=?,`gender`=?,`address`=?,`city`=?,`tel`=?,`tel1`=?,`email`=?,`createdBy`=?,`createdAt`=? WHERE id = ?",
+      [
+        req.body.name,
+        req.body.birthDate,
+        req.body.pn,
+        req.body.gender,
+        req.body.address,
+        req.body.city,
+        req.body.tel,
+        req.body.tel1,
+        req.body.email,
+        req.body.createdBy,
+        req.body.createdAt,
+        req.params.id,
+      ]
+    );
+    return res.json({ message: "პაციენტის მონაცემები განახლებულია" });
+  } catch (error) {
+    res.json(error);
+  } finally {
+    if (conn) return conn.end();
+  }
+};
+
+//Delete patient
+export const deletePatient = async (req, res) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    await conn.query(`DELETE FROM patients WHERE id=?`, req.params.id);
+    res.json({ message: "პაციენტის მონაცემები წაიშალა" });
+  } catch (error) {
+    res.json(error);
+  } finally {
+    if (conn) return conn.end();
+  }
+};

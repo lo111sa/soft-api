@@ -3,6 +3,7 @@ import patientsRoutes from "./routes/patient.js";
 import cookieParser from "cookie-parser";
 import multer from "multer";
 import cors from "cors";
+import ErrorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
@@ -28,6 +29,9 @@ app.post("/api/upload", upload.single("file"), function (req, res) {
 
 //Routes
 app.use("/api/patients", patientsRoutes);
+
+// ERROR HANDLER MIDDLEWARE (Last middleware to use)
+app.use(ErrorHandler);
 
 app.listen(8000, () => {
   console.log("Connected!");
