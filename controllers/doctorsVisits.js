@@ -27,10 +27,12 @@ export const getDoctorsVisit = async (req, res) => {
     const result = await conn.query(
       `SELECT doctorsVisits.patientId,  doctorsVisits.timeId
       FROM doctors
-      JOIN doctorsVisits ON doctors.id = ?`,
+      JOIN doctorsVisits ON doctors.id = doctorsVisits.doctorId
+      WHERE doctors.id = ?`,
       req.params.id
     );
     res.json({ result: result, doctor: doctor });
+    console.log(result);
   } catch (error) {
     res.json(error);
   } finally {
