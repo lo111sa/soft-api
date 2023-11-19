@@ -1,5 +1,6 @@
 import { db } from "../db.js";
 import jwt from "jsonwebtoken";
+import { visitsToObject } from "../utils/functions.js";
 
 //Get patients
 export const getDoctorsVisits = async (req, res, next) => {
@@ -20,19 +21,26 @@ export const getDoctorsVisit = async (req, res) => {
   let conn;
   try {
     conn = await db.getConnection();
-    const doctor = await conn.query(
-      "SELECT * FROM doctors WHERE id=?",
+
+    const results = await conn.query(
+      `SELECT
+      d.id AS doctor_id,
+      d.name AS doctor_name,
+      p.id AS patient_id,
+      p.name AS patient_name,
+      dv.time AS visit_time
+    FROM
+      doctorsVisits dv
+      JOIN doctors d ON dv.doctorId = d.id
+      JOIN patients p ON dv.patientId = p.id
+      JOIN doctorsGroups dg ON dv.groupId = dg.id;
+  `,
       req.params.id
     );
-    const result = await conn.query(
-      `SELECT doctorsVisits.patientId,  doctorsVisits.timeId
-      FROM doctors
-      JOIN doctorsVisits ON doctors.id = doctorsVisits.doctorId
-      WHERE doctors.id = ?`,
-      req.params.id
-    );
-    res.json({ result: result, doctor: doctor });
-    console.log(result);
+    const visits = visitsToObject(results);
+
+    res.json(visits);
+    console.log(results);
   } catch (error) {
     res.json(error);
   } finally {
