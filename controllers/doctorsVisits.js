@@ -2,25 +2,12 @@ import { db } from "../db.js";
 import jwt from "jsonwebtoken";
 import { visitsToObject } from "../utils/functions.js";
 
-//Get patients
-export const getDoctorsVisits = async (req, res, next) => {
-  let conn;
-  try {
-    conn = await db.getConnection();
-    const rows = await conn.query(`SELECT * FROM doctorsVisits`);
-    res.json(rows);
-  } catch (error) {
-    next(error);
-  } finally {
-    if (conn) return conn.end();
-  }
-};
-
-//Get single DoctorsGroup
+//Get Visits
 export const getDoctorsVisit = async (req, res) => {
   let conn;
   try {
     conn = await db.getConnection();
+    const { group, doctor } = req.query;
 
     const results = await conn.query(
       `SELECT
@@ -33,14 +20,16 @@ export const getDoctorsVisit = async (req, res) => {
       doctorsVisits dv
       JOIN doctors d ON dv.doctorId = d.id
       JOIN patients p ON dv.patientId = p.id
-      JOIN doctorsGroups dg ON dv.groupId = dg.id;
+      JOIN doctorsGroups dg ON dv.groupId = dg.id
+    WHERE ${group ? "dv.groupId = ?" : "dv.doctorId = ?"}  
+      ;
   `,
-      req.params.id
+      group ? group : doctor
     );
     const visits = visitsToObject(results);
 
     res.json(visits);
-    console.log(results);
+    console.log(req.query);
   } catch (error) {
     res.json(error);
   } finally {
@@ -55,12 +44,12 @@ export const addDoctorsVisit = async (req, res) => {
   try {
     conn = await db.getConnection();
     const result = await conn.query(
-      "INSERT INTO doctorsVisits (`groupId`,`doctorId`,`patientId`,timeId,createdAt) VALUES (?,?,?,?,?)",
+      "INSERT INTO doctorsVisits (`groupId`,`doctorId`,`patientId`,time,createdAt) VALUES (?,?,?,?,?)",
       [
         req.body.groupId,
         req.body.doctorId,
         req.body.patientId,
-        req.body.timeId,
+        req.body.time,
         currentDate,
       ]
     );
