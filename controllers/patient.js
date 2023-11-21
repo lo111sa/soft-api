@@ -42,7 +42,7 @@ export const addPatient = async (req, res) => {
       "INSERT INTO patients (`name`,`birthDate`,`pn`,`gender`,`address`,`city`,`tel`,`tel1`,`email`,`createdBy`,`createdAt`) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
       [
         req.body.name,
-        req.body.birthDate,
+        currentDate,
         req.body.pn,
         req.body.gender,
         req.body.address,
