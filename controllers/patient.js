@@ -17,13 +17,11 @@ export const getPatients = async (req, res, next) => {
 
 //Get single patient
 export const getPatient = async (req, res) => {
+  const { pn } = req.query;
   let conn;
   try {
     conn = await db.getConnection();
-    const result = await conn.query(
-      "SELECT * FROM patients WHERE  pn=?",
-      req.params.id
-    );
+    const result = await conn.query("SELECT * FROM patients WHERE pn=?", pn);
     res.json(result);
   } catch (error) {
     res.json(error);
