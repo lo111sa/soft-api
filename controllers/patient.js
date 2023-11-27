@@ -21,7 +21,7 @@ export const getPatient = async (req, res) => {
   try {
     conn = await db.getConnection();
     const result = await conn.query(
-      "SELECT * FROM patients WHERE id=?",
+      "SELECT * FROM patients WHERE  pn=?",
       req.params.id
     );
     res.json(result);
