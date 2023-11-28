@@ -34,7 +34,7 @@ export const getAmb = async (req, res) => {
   let conn;
   try {
     conn = await db.getConnection();
-    const { group, doctor } = req.query;
+    const { patientId, doctor } = req.query;
 
     const results = await conn.query(
       `SELECT
@@ -50,8 +50,9 @@ export const getAmb = async (req, res) => {
       JOIN doctors d ON dv.doctorId = d.id
       JOIN patients p ON dv.patientId = p.id
       JOIN doctorsGroups dg ON dv.groupId = dg.id   
-      
-  `
+    ${patientId ? `WHERE p.id = ?` : ""}  
+  `,
+      patientId
     );
 
     res.json(results);
