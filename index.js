@@ -7,7 +7,7 @@ import ErrorHandler from "./middlewares/errorHandler.js";
 import patientsRoutes from "./routes/patient.js";
 import doctorsGroupsRoutes from "./routes/doctorsGroups.js";
 import doctorsRoutes from "./routes/doctors.js";
-import doctorsVisitsRoutes from "./routes/doctorsVisits.js";
+import ambulRecordsRoutes from "./routes/ambulRecords.js";
 
 const app = express();
 
@@ -35,7 +35,7 @@ app.post("/api/upload", upload.single("file"), function (req, res) {
 app.use("/api/patients", patientsRoutes);
 app.use("/api/doctorsGroups", doctorsGroupsRoutes);
 app.use("/api/doctors", doctorsRoutes);
-app.use("/api/doctorsVisits", doctorsVisitsRoutes);
+app.use("/api/ambulRecords", ambulRecordsRoutes);
 
 // ERROR HANDLER MIDDLEWARE (Last middleware to use)
 app.use(ErrorHandler);
