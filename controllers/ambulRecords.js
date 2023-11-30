@@ -34,7 +34,7 @@ export const getAmb = async (req, res) => {
   let conn;
   try {
     conn = await db.getConnection();
-    const { patientId, doctor } = req.query;
+    const { patientId } = req.query;
 
     const results = await conn.query(
       `SELECT
@@ -50,7 +50,7 @@ export const getAmb = async (req, res) => {
       JOIN doctors d ON dv.doctorId = d.id
       JOIN patients p ON dv.patientId = p.id
      
-    ${patientId ? `WHERE p.id = ?` : ""}  
+    ${patientId ? `WHERE p.id = ?` : ""}  ORDER BY dv.createdAt DESC
   `,
       patientId
     );
@@ -70,8 +70,8 @@ export const addAmbulRecords = async (req, res) => {
   try {
     conn = await db.getConnection();
     const result = await conn.query(
-      "INSERT INTO ambulRecords (`doctorId`,`patientId`,time,createdAt) VALUES (?,?,?,?)",
-      [req.body.doctorId, req.body.patientId, req.body.time, currentDate]
+      "INSERT INTO ambulRecords (`doctorId`,`patientId`,createdAt) VALUES (?,?,?)",
+      [req.body.doctorId, req.body.patientId, currentDate]
     );
     return res.json({
       result: {
@@ -94,15 +94,8 @@ export const updateAmbulRecords = async (req, res) => {
   try {
     conn = await db.getConnection();
     await conn.query(
-      "UPDATE ambulRecords SET `groupId`=?,`doctorId`=?,`patientId`=?,`timeId`=? WHERE id = ?",
-      [
-        req.body.groupId,
-        req.body.doctorId,
-        req.body.patientId,
-        req.body.timeId,
-        currentDate,
-        req.params.id,
-      ]
+      "UPDATE ambulRecords SET `doctorId`=?,`patientId`=?, WHERE id = ?",
+      [req.body.doctorId, req.body.patientId, currentDate, req.params.id]
     );
     return res.json({ message: "ვიზიტი განახლებულია" });
   } catch (error) {
