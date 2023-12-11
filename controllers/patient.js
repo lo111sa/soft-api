@@ -21,7 +21,10 @@ export const getPatient = async (req, res) => {
   let conn;
   try {
     conn = await db.getConnection();
-    const result = await conn.query("SELECT * FROM patients WHERE pn=?", pn);
+    const result = await conn.query(
+      "SELECT * FROM patients WHERE pn LIKE ?",
+      `%${pn}%`
+    );
     res.json(result);
   } catch (error) {
     res.json(error);
