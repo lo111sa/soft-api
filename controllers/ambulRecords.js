@@ -76,8 +76,6 @@ export const addAmbulRecords = async (req, res) => {
     return res.json({
       result: {
         id: parseInt(result.insertId),
-        ...req.body,
-        createdAt: currentDate,
       },
       message: "ვიზიტი დამატებულია",
     });

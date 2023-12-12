@@ -39,30 +39,44 @@ export const addPatient = async (req, res) => {
   const currentDate = new Date();
   try {
     conn = await db.getConnection();
-    const result = await conn.query(
-      "INSERT INTO patients (`name`,`birthDate`,`pn`,`gender`,`address`,`city`,`tel`,`tel1`,`email`,`createdBy`,`createdAt`) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-      [
-        req.body.name,
-        currentDate,
-        req.body.pn,
-        req.body.gender,
-        req.body.address,
-        req.body.city,
-        req.body.tel,
-        req.body.tel1,
-        req.body.email,
-        req.body.createdBy,
-        currentDate,
-      ]
+    //Check if patient exists
+    const patientExists = await conn.query(
+      `SELECT pn FROM patients WHERE pn = ?`,
+      [req.body.pn]
     );
-    return res.json({
-      result: {
-        id: parseInt(result.insertId),
-        ...req.body,
-        createdAt: currentDate,
-      },
-      message: "პაციენტი დამატებულია",
-    });
+
+    if (patientExists.length) {
+      res.json({ message: "პაციენტი უკვე არსებობს" });
+    } else {
+      // If Patient not exists, add new patient
+      const result = await conn.query(
+        "INSERT INTO patients (`name`,`birthDate`,`pn`,`gender`,`address`,`city`,`tel`,`tel1`,`email`,`createdBy`,`createdAt`) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        [
+          req.body.name,
+          currentDate,
+          req.body.pn,
+          req.body.gender,
+          req.body.address,
+          req.body.city,
+          req.body.tel,
+          req.body.tel1,
+          req.body.email,
+          req.body.createdBy,
+          currentDate,
+        ]
+      );
+
+      if (result.insertId) {
+        return res.json({
+          result: {
+            id: parseInt(result.insertId),
+
+            createdAt: currentDate,
+          },
+          message: "პაციენტი დამატებულია",
+        });
+      }
+    }
   } catch (error) {
     res.json(error);
   } finally {
