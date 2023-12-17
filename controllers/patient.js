@@ -1,5 +1,4 @@
 import { db } from "../db.js";
-import jwt from "jsonwebtoken";
 
 //Get patients
 export const getPatients = async (req, res, next) => {

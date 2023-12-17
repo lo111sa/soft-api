@@ -34,7 +34,21 @@ export const getAmb = async (req, res) => {
   let conn;
   try {
     conn = await db.getConnection();
-    const { patientId } = req.query;
+    const { patientId, pn, startDate, endDate } = req.query;
+
+    let whereClause = "1=1"; // Default condition to retrieve all records
+
+    if (patientId) {
+      whereClause += ` AND p.id = ${patientId}`;
+    }
+
+    if (pn) {
+      whereClause += ` AND p.pn LIKE "${pn}%"`;
+    }
+
+    if (startDate && endDate) {
+      whereClause += ` AND date(dv.createdAt) BETWEEN '${startDate}' AND '${endDate}'`;
+    }
 
     const results = await conn.query(
       `SELECT
@@ -44,15 +58,18 @@ export const getAmb = async (req, res) => {
       p.id AS patientId,
       p.name AS patientName,
       p.pn AS patientPn,
-      dv.createdAt AS visitTime
+      dv.createdAt AS visitTime,
+      dv.status AS status
     FROM
       ambulRecords dv
       JOIN doctors d ON dv.doctorId = d.id
       JOIN patients p ON dv.patientId = p.id
      
-    ${patientId ? `WHERE p.id = ?` : ""}  ORDER BY dv.createdAt DESC
+    WHERE
+    ${whereClause}
+    ORDER BY dv.createdAt DESC
   `,
-      patientId
+      []
     );
 
     res.json(results);
