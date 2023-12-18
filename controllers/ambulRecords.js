@@ -1,40 +1,41 @@
 import { db } from "../db.js";
-import jwt from "jsonwebtoken";
+import moment from "moment";
 import { visitsToObject } from "../utils/functions.js";
 
 //Get Visits
-export const getDoctorsVisit = async (req, res) => {
-  let conn;
-  try {
-    conn = await db.getConnection();
-    const { group, doctor } = req.query;
+// export const getDoctorsVisit = async (req, res) => {
+//   let conn;
+//   try {
+//     conn = await db.getConnection();
+//     const { group, doctor } = req.query;
 
-    const results = await conn.query(
-      `SELECT d.id AS doctor_id, d.name AS doctor_name, v.patientId AS patient_id,  p.name AS patient_name, v.time AS visit_time
-      FROM doctors as d
-         LEFT JOIN ambulRecords as v ON d.id = v.doctorId 
-         LEFT JOIN patients as p ON p.id = v.patientId
-      WHERE ${group ? "d.groupId = ?" : "d.id = ?"}  
-      
-  `,
-      group ? group : doctor
-    );
-    const visits = visitsToObject(results);
+//     const results = await conn.query(
+//       `SELECT d.id AS doctor_id, d.name AS doctor_name, v.patientId AS patient_id,  p.name AS patient_name, v.time AS visit_time
+//       FROM doctors as d
+//          LEFT JOIN ambulRecords as v ON d.id = v.doctorId
+//          LEFT JOIN patients as p ON p.id = v.patientId
+//       WHERE ${group ? "d.groupId = ?" : "d.id = ?"}
 
-    res.json(visits);
-  } catch (error) {
-    res.json(error);
-  } finally {
-    if (conn) return conn.end();
-  }
-};
+//   `,
+//       group ? group : doctor
+//     );
+//     const visits = visitsToObject(results);
+
+//     res.json(visits);
+//   } catch (error) {
+//     res.json(error);
+//   } finally {
+//     if (conn) return conn.end();
+//   }
+// };
 
 //Get Amb Visits
 export const getAmb = async (req, res) => {
   let conn;
+
   try {
     conn = await db.getConnection();
-    const { patientId, pn, startDate, endDate } = req.query;
+    const { patientId, pn, startDate, endDate, all } = req.query;
 
     let whereClause = "1=1"; // Default condition to retrieve all records
 
@@ -46,11 +47,16 @@ export const getAmb = async (req, res) => {
       whereClause += ` AND p.pn LIKE "${pn}%"`;
     }
 
-    if (startDate && endDate) {
-      whereClause += ` AND date(dv.createdAt) BETWEEN '${startDate}' AND '${endDate}'`;
+    if (!all) {
+      if (startDate && endDate) {
+        whereClause += ` AND date(dv.createdAt) BETWEEN '${startDate}' AND '${endDate}'`;
+      } else {
+        const todayDate = moment().format("YYYY-MM-DD");
+        whereClause += ` AND date(dv.createdAt) = ${todayDate}`;
+      }
     }
 
-    const results = await conn.query(
+    const result = await conn.query(
       `SELECT
       dv.id AS id,
       d.id AS doctorId,
@@ -59,7 +65,7 @@ export const getAmb = async (req, res) => {
       p.name AS patientName,
       p.pn AS patientPn,
       dv.createdAt AS visitTime,
-      dv.status AS status
+      dv.paid AS status
     FROM
       ambulRecords dv
       JOIN doctors d ON dv.doctorId = d.id
@@ -72,15 +78,22 @@ export const getAmb = async (req, res) => {
       []
     );
 
-    res.json(results);
+    res.json({
+      status: 1,
+      result: result,
+    });
   } catch (error) {
-    res.json(error);
+    res.json({
+      status: 0,
+      message: "ამბულატორიული ჩანაწერების ძებნისას მოხდა შეცდომა!",
+      error: error,
+    });
   } finally {
     if (conn) return conn.end();
   }
 };
 
-//Add new DoctorsGroup
+//Add new ambul record
 export const addAmbulRecords = async (req, res) => {
   let conn;
   const currentDate = new Date();
@@ -91,19 +104,24 @@ export const addAmbulRecords = async (req, res) => {
       [req.body.doctorId, req.body.patientId, currentDate]
     );
     return res.json({
+      status: 1,
+      message: "ვიზიტი დამატებულია",
       result: {
         id: parseInt(result.insertId),
       },
-      message: "ვიზიტი დამატებულია",
     });
   } catch (error) {
-    res.json(error);
+    res.json({
+      status: 0,
+      message: "ვიზიტის დამატებისას მოხდა შეცდომა!",
+      error: error,
+    });
   } finally {
     if (conn) return conn.end();
   }
 };
 
-//Update DoctorsGroup
+//Update ambul visit
 export const updateAmbulRecords = async (req, res) => {
   let conn;
   try {
@@ -113,20 +131,6 @@ export const updateAmbulRecords = async (req, res) => {
       [req.body.doctorId, req.body.patientId, currentDate, req.params.id]
     );
     return res.json({ message: "ვიზიტი განახლებულია" });
-  } catch (error) {
-    res.json(error);
-  } finally {
-    if (conn) return conn.end();
-  }
-};
-
-//Delete DoctorsGroup
-export const deleteAmbulRecords = async (req, res) => {
-  let conn;
-  try {
-    conn = await db.getConnection();
-    await conn.query(`DELETE FROM ambulRecords WHERE id=?`, req.params.id);
-    res.json({ message: "ვიზიტი წაიშალა" });
   } catch (error) {
     res.json(error);
   } finally {
