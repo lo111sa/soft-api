@@ -44,7 +44,7 @@ export const getAmb = async (req, res) => {
     }
 
     if (pn) {
-      whereClause += ` AND p.pn LIKE "${pn}%"`;
+      whereClause += ` AND p.pn LIKE "${pn}%" OR p.name LIKE "%${pn}%"`;
     }
 
     if (!all) {
@@ -79,12 +79,12 @@ export const getAmb = async (req, res) => {
     );
 
     res.json({
-      status: 1,
+      status: true,
       result: result,
     });
   } catch (error) {
     res.json({
-      status: 0,
+      status: false,
       message: "ამბულატორიული ჩანაწერების ძებნისას მოხდა შეცდომა!",
       error: error,
     });
@@ -93,7 +93,7 @@ export const getAmb = async (req, res) => {
   }
 };
 
-//Add new ambul record
+//ამბულატორიული ვიზიტის დამატება
 export const addAmbulRecords = async (req, res) => {
   let conn;
   const currentDate = new Date();
@@ -104,16 +104,16 @@ export const addAmbulRecords = async (req, res) => {
       [req.body.doctorId, req.body.patientId, currentDate]
     );
     return res.json({
-      status: 1,
-      message: "ვიზიტი დამატებულია",
+      status: true,
+      message: "ამბულატორიული ვიზიტი დამატებულია",
       result: {
         id: parseInt(result.insertId),
       },
     });
   } catch (error) {
     res.json({
-      status: 0,
-      message: "ვიზიტის დამატებისას მოხდა შეცდომა!",
+      status: false,
+      message: "ამბულატორიული ვიზიტის დამატებისას მოხდა შეცდომა!",
       error: error,
     });
   } finally {
@@ -130,7 +130,7 @@ export const updateAmbulRecords = async (req, res) => {
       "UPDATE ambulRecords SET `doctorId`=?,`patientId`=?, WHERE id = ?",
       [req.body.doctorId, req.body.patientId, currentDate, req.params.id]
     );
-    return res.json({ message: "ვიზიტი განახლებულია" });
+    return res.json({ message: "ამბულატორიული ვიზიტი განახლებულია" });
   } catch (error) {
     res.json(error);
   } finally {

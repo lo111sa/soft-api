@@ -24,9 +24,13 @@ export const getPatient = async (req, res) => {
       "SELECT * FROM patients WHERE pn LIKE ?",
       `%${pn}%`
     );
-    res.json(result);
+    res.json({ result: result });
   } catch (error) {
-    res.json(error);
+    res.json({
+      status: false,
+      message: `პაციენტის ძიებისას მოხდა შეცდომა!`,
+      error: error,
+    });
   } finally {
     if (conn) return conn.end();
   }
@@ -44,9 +48,7 @@ export const addPatient = async (req, res) => {
       [req.body.pn]
     );
 
-    if (patientExists.length) {
-      res.json({ message: "პაციენტი უკვე არსებობს" });
-    } else {
+    if (!patientExists.length) {
       // If Patient not exists, add new patient
       const result = await conn.query(
         "INSERT INTO patients (`name`,`birthDate`,`pn`,`gender`,`address`,`city`,`tel`,`tel1`,`email`,`createdBy`,`createdAt`) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
@@ -67,17 +69,22 @@ export const addPatient = async (req, res) => {
 
       if (result.insertId) {
         return res.json({
+          status: true,
+          message: "პაციენტი დამატებულია",
           result: {
             id: parseInt(result.insertId),
 
             createdAt: currentDate,
           },
-          message: "პაციენტი დამატებულია",
         });
       }
     }
   } catch (error) {
-    res.json(error);
+    res.json({
+      status: false,
+      message: "ახალი პაციენტის დამატებისას მოხდა შეცდომა!",
+      error: error,
+    });
   } finally {
     if (conn) return conn.end();
   }
