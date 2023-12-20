@@ -10,7 +10,9 @@ export const getPatients = async (req, res, next) => {
   } catch (error) {
     next(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -32,7 +34,9 @@ export const getPatient = async (req, res) => {
       error: error,
     });
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -86,7 +90,9 @@ export const addPatient = async (req, res) => {
       error: error,
     });
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -116,7 +122,9 @@ export const updatePatient = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -130,6 +138,8 @@ export const deletePatient = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };

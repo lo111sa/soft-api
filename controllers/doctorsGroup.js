@@ -11,7 +11,9 @@ export const getDoctorsGroups = async (req, res, next) => {
   } catch (error) {
     next(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -28,7 +30,9 @@ export const getDoctorsGroup = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -52,7 +56,9 @@ export const addDoctorsGroup = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -69,7 +75,9 @@ export const updateDoctorsGroup = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -83,6 +91,8 @@ export const deleteDoctorsGroup = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };

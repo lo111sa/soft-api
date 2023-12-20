@@ -1,5 +1,4 @@
 import { db } from "../db.js";
-import jwt from "jsonwebtoken";
 
 //Get patients
 export const getDoctors = async (req, res, next) => {
@@ -11,7 +10,9 @@ export const getDoctors = async (req, res, next) => {
   } catch (error) {
     next(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -28,7 +29,9 @@ export const getDoctor = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -52,7 +55,9 @@ export const addDoctor = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -70,7 +75,9 @@ export const updateDoctor = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -84,6 +91,8 @@ export const deleteDoctor = async (req, res) => {
   } catch (error) {
     res.json(error);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };

@@ -25,7 +25,9 @@ import { visitsToObject } from "../utils/functions.js";
 //   } catch (error) {
 //     res.json(error);
 //   } finally {
-//     if (conn) return conn.end();
+//       if (conn) {
+//     await conn.end();
+//  }
 //   }
 // };
 
@@ -44,7 +46,7 @@ export const getAmb = async (req, res) => {
     }
 
     if (pn) {
-      whereClause += ` AND p.pn LIKE "${pn}%" OR p.name LIKE "%${pn}%"`;
+      whereClause += ` AND (p.pn LIKE "%${pn}%"  OR p.name LIKE "%${pn}%")`;
     }
 
     if (!all) {
@@ -86,38 +88,64 @@ export const getAmb = async (req, res) => {
     res.json({
       status: false,
       message: "ამბულატორიული ჩანაწერების ძებნისას მოხდა შეცდომა!",
-      error: error,
+      error: error.message,
     });
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
-//ამბულატორიული ვიზიტის დამატება
+//Add ambul visit record
 export const addAmbulRecords = async (req, res) => {
-  let conn;
   const currentDate = new Date();
+  let conn;
+
   try {
     conn = await db.getConnection();
     const result = await conn.query(
       "INSERT INTO ambulRecords (`doctorId`,`patientId`,createdAt) VALUES (?,?,?)",
       [req.body.doctorId, req.body.patientId, currentDate]
     );
+
+    const visit = await conn.query(
+      `SELECT
+      dv.id AS id,
+      d.id AS doctorId,
+      d.name AS doctorName,
+      p.id AS patientId,
+      p.name AS patientName,
+      p.pn AS patientPn,
+      dv.createdAt AS visitTime,
+      dv.paid AS status
+    FROM
+      ambulRecords dv
+      JOIN doctors d ON dv.doctorId = d.id
+      JOIN patients p ON dv.patientId = p.id
+     
+    WHERE
+    dv.id = ?
+    ORDER BY dv.createdAt DESC
+  `,
+      [parseInt(result.insertId)]
+    );
+
     return res.json({
       status: true,
       message: "ამბულატორიული ვიზიტი დამატებულია",
-      result: {
-        id: parseInt(result.insertId),
-      },
+      result: visit[0],
     });
   } catch (error) {
     res.json({
       status: false,
       message: "ამბულატორიული ვიზიტის დამატებისას მოხდა შეცდომა!",
-      error: error,
+      error: error.message, // Send only the error message to the client for security reasons.
     });
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
 
@@ -132,8 +160,10 @@ export const updateAmbulRecords = async (req, res) => {
     );
     return res.json({ message: "ამბულატორიული ვიზიტი განახლებულია" });
   } catch (error) {
-    res.json(error);
+    res.json(error.message);
   } finally {
-    if (conn) return conn.end();
+    if (conn) {
+      await conn.end();
+    }
   }
 };
