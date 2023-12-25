@@ -2,61 +2,77 @@ import { db } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-export const register = (req, res) => {
-  //CHECK EXISTING USER
-  const q = "SELECT * FROM users WHERE email = ? OR username = ?";
+export const register = async (req, res) => {
+  try {
+    // CHECK EXISTING USER
+    const checkUserQuery = "SELECT * FROM users WHERE username = ?";
+    const userData = await db.query(checkUserQuery, [req.body.username]);
 
-  db.query(q, [req.body.email, req.body.username], (err, data) => {
-    if (err) return res.status(500).json(err);
-    if (data.length) return res.status(409).json("User already exists!");
+    if (userData.length) {
+      return res.status(409).json("მომხმარებელი უკვე არსებობს!");
+    }
 
-    //Hash the password and create a user
+    // Hash the password and create a user
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(req.body.password, salt);
 
-    const q = "INSERT INTO users(`username`,`email`,`password`) VALUES (?)";
-    const values = [req.body.username, req.body.email, hash];
+    const createUserQuery =
+      "INSERT INTO users (`username`, `password`) VALUES (?, ?)";
+    const createUserValues = [req.body.username, hash];
 
-    db.query(q, [values], (err, data) => {
-      if (err) return res.status(500).json(err);
-      return res.status(200).json("User has been created.");
-    });
-  });
+    await db.query(createUserQuery, createUserValues);
+
+    return res.status(200).json("მომხარებელი წარმატებით დარეგისტრირდა.");
+  } catch (error) {
+    return res.status(500).json(error.message || "Internal Server Error");
+  }
 };
 
-export const login = (req, res) => {
-  //CHECK USER
+export const login = async (req, res) => {
+  try {
+    // CHECK USER
+    const checkUserQuery = "SELECT * FROM users WHERE username = ?";
+    const userData = await db.query(checkUserQuery, [req.body.username]);
 
-  const q = "SELECT * FROM users WHERE username = ?";
+    if (userData.length === 0) {
+      return res.status(404).json("მომხარებელი ვერ მოიძებნა!");
+    }
 
-  db.query(q, [req.body.username], (err, data) => {
-    if (err) return res.status(500).json(err);
-    if (data.length === 0) return res.status(404).json("User not found!");
-
-    //Check password
-    const isPasswordCorrect = bcrypt.compareSync(
+    // CHECK PASSWORD
+    const isPasswordCorrect = bcrypt.compare(
       req.body.password,
-      data[0].password
+      userData[0].password
     );
 
-    if (!isPasswordCorrect)
-      return res.status(400).json("Wrong username or password!");
+    if (!isPasswordCorrect) {
+      return res.status(400).json("არასწორი მომხმარებელი ან პაროლი!");
+    }
 
-    const token = jwt.sign({ id: data[0].id }, "jwtkey");
-    const { password, ...other } = data[0];
+    // GENERATE JWT TOKEN
+    const token = jwt.sign({ id: userData[0].id }, "jwtkey");
 
+    // REMOVE PASSWORD FROM RESPONSE
+    const { password, ...userWithoutPassword } = userData[0];
+
+    // SET COOKIE AND SEND USER DATA
     res
-      .cookie("access_token", token, {
+      .cookie("token", token, {
         httpOnly: true,
       })
       .status(200)
-      .json(other);
-  });
+      .json({ status: true, result: userWithoutPassword });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json(error.message || "Internal Server Error");
+  }
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("access_token",{
-    sameSite:"none",
-    secure:true
-  }).status(200).json("User has been logged out.")
+  res
+    .clearCookie("token", {
+      sameSite: "none",
+      secure: true,
+    })
+    .status(200)
+    .json("თქვენ გმაოხვედით სისტემიდან.");
 };

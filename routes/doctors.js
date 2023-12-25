@@ -1,4 +1,5 @@
 import express from "express";
+import verifyToken from "./../middlewares/verifyToken.js";
 import {
   getDoctors,
   getDoctor,
@@ -9,7 +10,7 @@ import {
 
 const router = express.Router();
 
-router.get("/", getDoctors);
+router.get("/", verifyToken, getDoctors);
 router.get("/:id", getDoctor);
 router.post("/add", addDoctor);
 router.delete("/:id", deleteDoctor);

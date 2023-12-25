@@ -1,14 +1,13 @@
 import { db } from "../db.js";
 
 //Get patients
-export const getDoctors = async (req, res, next) => {
+export const getDoctors = async (req, res) => {
   let conn;
   try {
     conn = await db.getConnection();
     const rows = await conn.query(`SELECT * FROM doctors`);
     res.json(rows);
   } catch (error) {
-    next(error);
   } finally {
     if (conn) {
       await conn.end();

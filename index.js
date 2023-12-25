@@ -4,6 +4,7 @@ import multer from "multer";
 import cors from "cors";
 import ErrorHandler from "./middlewares/errorHandler.js";
 //Routes
+import authRoutes from "./routes/auth.js";
 import patientsRoutes from "./routes/patient.js";
 import doctorsGroupsRoutes from "./routes/doctorsGroups.js";
 import doctorsRoutes from "./routes/doctors.js";
@@ -11,7 +12,13 @@ import ambulRecordsRoutes from "./routes/ambulRecords.js";
 
 const app = express();
 
-app.use(cors()); //corsOptions
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost", "https://losa.ge"],
+    methods: ["POST", "GET", "PUT", "DELETE"],
+    credentials: true,
+  })
+); //corsOptions
 app.use(express.json());
 app.use(cookieParser());
 
@@ -32,6 +39,7 @@ app.post("/api/upload", upload.single("file"), function (req, res) {
 });
 
 //Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/patients", patientsRoutes);
 app.use("/api/doctorsGroups", doctorsGroupsRoutes);
 app.use("/api/doctors", doctorsRoutes);
