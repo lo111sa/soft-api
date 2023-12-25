@@ -67,6 +67,28 @@ export const login = async (req, res) => {
   }
 };
 
+export const checkAuth = async (req, res) => {
+  try {
+    // CHECK USER
+    const checkUserQuery = "SELECT * FROM users WHERE id = ?";
+    const userData = await db.query(checkUserQuery, [req.id]);
+
+    if (userData.length === 0) {
+      return res.status(404).json("მომხარებელი ვერ მოიძებნა!");
+    }
+
+    // REMOVE PASSWORD FROM RESPONSE
+    const { password, ...userWithoutPassword } = userData[0];
+
+    res.status(200).json({
+      status: true,
+      result: { ...userWithoutPassword, authenticated: true },
+    });
+  } catch (error) {
+    return res.status(500).json(error.message || "Internal Server Error");
+  }
+};
+
 export const logout = (req, res) => {
   res
     .clearCookie("token", {
