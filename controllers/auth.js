@@ -35,11 +35,11 @@ export const login = async (req, res) => {
     const userData = await db.query(checkUserQuery, [req.body.username]);
 
     if (userData.length === 0) {
-      return res.status(404).json("მომხარებელი ვერ მოიძებნა!");
+      return res.status(404).json("არასწორი მომხმარებელი ან პაროლი!");
     }
 
     // CHECK PASSWORD
-    const isPasswordCorrect = bcrypt.compare(
+    const isPasswordCorrect = await bcrypt.compare(
       req.body.password,
       userData[0].password
     );
