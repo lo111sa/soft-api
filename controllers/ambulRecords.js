@@ -105,8 +105,8 @@ export const addAmbulRecords = async (req, res) => {
   try {
     conn = await db.getConnection();
     const result = await conn.query(
-      "INSERT INTO ambulRecords (`doctorId`,`patientId`,createdAt) VALUES (?,?,?)",
-      [req.body.doctorId, req.body.patientId, currentDate]
+      "INSERT INTO ambulRecords (`doctorId`,`patientId`,createdAt,paid) VALUES (?,?,?,?)",
+      [req.body.doctorId, req.body.patientId, currentDate, req.body.status]
     );
 
     const visit = await conn.query(
