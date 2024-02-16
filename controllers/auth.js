@@ -96,5 +96,5 @@ export const logout = (req, res) => {
       secure: true,
     })
     .status(200)
-    .json("თქვენ გმაოხვედით სისტემიდან.");
+    .json("თქვენ გამოხვედით სისტემიდან.");
 };
